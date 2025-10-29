@@ -1,0 +1,1512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EY AgenticAI — Pricing & FinOps Calculator (CAD)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ey-yellow:#FFE600;
+    --ey-yellow-dark:#e6c600;
+    --ey-black:#111111;
+    --ey-ink:#1f2937;
+    --ey-muted:#6b7280;
+    --ey-border:#e5e7eb;
+    --ey-bg:#f9fafb;
+    --ey-card:#ffffff;
+    --ey-focus:#2b6cb0;
+    --ok:#15803d;
+    --warn:#f59e0b;
+    --bad:#dc2626;
+    --gradient-start:#fef3c7;
+    --gradient-end:#fde68a;
+  }
+  
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  
+  body{
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    color:var(--ey-ink);
+    background:linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+    line-height:1.6;
+  }
+  
+  header{
+    background:#fff;
+    border-bottom:3px solid var(--ey-yellow);
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  
+  .topbar{
+    max-width:1400px;
+    margin:0 auto;
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+  }
+  
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  
+  .brand h1{
+    margin:0;
+    font-size:22px;
+    font-weight:900;
+    letter-spacing:-.02em;
+    color:var(--ey-black);
+    background:linear-gradient(135deg, #111 0%, #374151 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  
+  .tag{
+    font-size:11px;
+    font-weight:700;
+    border:2px solid var(--ey-yellow);
+    padding:6px 14px;
+    border-radius:20px;
+    background:linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color:#92400e;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  
+  main{
+    max-width:1400px;
+    margin:0 auto;
+    padding:24px;
+  }
+  
+  /* Tabs */
+  .tabs{
+    display:flex;
+    gap:12px;
+    margin-bottom:24px;
+    background:#fff;
+    padding:8px;
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .tabbtn{
+    flex:1;
+    background:transparent;
+    border:none;
+    padding:14px 20px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    color:var(--ey-muted);
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position:relative;
+  }
+  
+  .tabbtn:hover{
+    background:#f9fafb;
+    color:var(--ey-ink);
+  }
+  
+  .tabbtn.active{
+    background:linear-gradient(135deg, var(--ey-yellow) 0%, var(--ey-yellow-dark) 100%);
+    color:var(--ey-black);
+    box-shadow:0 4px 12px rgba(255, 230, 0, 0.3);
+    transform:translateY(-2px);
+  }
+  
+  .tabpanel{
+    display:none;
+    animation:fadeIn 0.4s ease;
+  }
+  
+  .tabpanel.active{
+    display:block;
+  }
+  
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  
+  /* Cards */
+  .card{
+    background:#fff;
+    border-radius:20px;
+    padding:28px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.08);
+    transition:transform 0.3s ease, box-shadow 0.3s ease;
+    border:1px solid rgba(0,0,0,0.05);
+  }
+  
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  }
+  
+  .card-title{
+    font-size:20px;
+    font-weight:800;
+    color:var(--ey-black);
+    margin:0 0 24px 0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  
+  .card-title::before{
+    content:'';
+    width:4px;
+    height:24px;
+    background:var(--ey-yellow);
+    border-radius:2px;
+  }
+  
+  .grid{
+    display:grid;
+    gap:24px;
+  }
+  
+  .grid-2{
+    grid-template-columns:1fr 1fr;
+  }
+  
+  .grid-3{
+    grid-template-columns:repeat(3, 1fr);
+  }
+  
+  .grid-4{
+    grid-template-columns:repeat(4, 1fr);
+  }
+  
+  @media (max-width: 1200px){
+    .grid-2, .grid-3, .grid-4{grid-template-columns:1fr}
+  }
+  
+  /* Input Groups with Sliders */
+  .input-group{
+    margin-bottom:24px;
+  }
+  
+  .input-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ey-muted);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  
+  .input-value{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ey-black);
+    font-family:'SF Mono', Monaco, 'Cascadia Code', monospace;
+    background:linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid var(--ey-yellow);
+  }
+  
+  input[type="range"]{
+    -webkit-appearance:none;
+    width:100%;
+    height:8px;
+    border-radius:4px;
+    background:linear-gradient(to right, var(--ey-yellow) 0%, var(--ey-yellow-dark) 100%);
+    outline:none;
+    opacity:0.9;
+    transition:opacity 0.3s;
+  }
+  
+  input[type="range"]:hover{
+    opacity:1;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#fff;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px var(--ey-yellow);
+    transition:all 0.3s ease;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover{
+    transform:scale(1.2);
+    box-shadow:0 4px 12px rgba(0,0,0,0.3), 0 0 0 4px var(--ey-yellow);
+  }
+  
+  input[type="range"]::-moz-range-thumb{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#fff;
+    cursor:pointer;
+    border:3px solid var(--ey-yellow);
+    box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  }
+  
+  select{
+    width:100%;
+    padding:12px 16px;
+    background:#fff;
+    border:2px solid var(--ey-border);
+    border-radius:12px;
+    color:var(--ey-ink);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+  }
+  
+  select:hover{
+    border-color:var(--ey-yellow);
+  }
+  
+  select:focus{
+    outline:none;
+    border-color:var(--ey-yellow);
+    box-shadow:0 0 0 3px rgba(255, 230, 0, 0.2);
+  }
+  
+  /* KPI Cards */
+  .kpi{
+    background:linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+    border-radius:16px;
+    padding:24px;
+    text-align:center;
+    border:2px solid var(--ey-border);
+    transition:all 0.3s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  
+  .kpi::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:4px;
+    background:linear-gradient(90deg, var(--ey-yellow), var(--ey-yellow-dark));
+  }
+  
+  .kpi:hover{
+    transform:translateY(-4px);
+    box-shadow:0 8px 24px rgba(0,0,0,0.15);
+    border-color:var(--ey-yellow);
+  }
+  
+  .kpi-label{
+    font-size:11px;
+    font-weight:800;
+    color:var(--ey-muted);
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    margin-bottom:12px;
+  }
+  
+  .kpi-value{
+    font-size:36px;
+    font-weight:900;
+    color:var(--ey-black);
+    font-family:'SF Mono', Monaco, monospace;
+    margin:8px 0;
+    line-height:1;
+  }
+  
+  .kpi-sub{
+    font-size:12px;
+    color:var(--ey-muted);
+    margin-top:8px;
+  }
+  
+  .kpi.ok{border-color:var(--ok)}
+  .kpi.ok::before{background:var(--ok)}
+  .kpi.ok .kpi-value{color:var(--ok)}
+  
+  .kpi.warn{border-color:var(--warn)}
+  .kpi.warn::before{background:var(--warn)}
+  .kpi.warn .kpi-value{color:var(--warn)}
+  
+  .kpi.bad{border-color:var(--bad)}
+  .kpi.bad::before{background:var(--bad)}
+  .kpi.bad .kpi-value{color:var(--bad)}
+  
+  /* Chart Container */
+  .chart-container{
+    position:relative;
+    height:300px;
+    margin:20px 0;
+  }
+  
+  .chart-container-lg{
+    height:400px;
+  }
+  
+  /* Gauge */
+  .gauge{
+    position:relative;
+    width:200px;
+    height:200px;
+    margin:20px auto;
+  }
+  
+  .gauge-circle{
+    transform:rotate(-90deg);
+  }
+  
+  /* Toggle Switch */
+  .toggle-group{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin:16px 0;
+  }
+  
+  .toggle-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 16px;
+    background:#f9fafb;
+    border:2px solid var(--ey-border);
+    border-radius:12px;
+    cursor:pointer;
+    transition:all 0.3s ease;
+  }
+  
+  .toggle-item:hover{
+    background:#fff;
+    border-color:var(--ey-yellow);
+  }
+  
+  .toggle-item input[type="checkbox"]{
+    width:48px;
+    height:24px;
+    position:relative;
+    cursor:pointer;
+    appearance:none;
+    background:#d1d5db;
+    border-radius:12px;
+    transition:background 0.3s;
+  }
+  
+  .toggle-item input[type="checkbox"]:checked{
+    background:var(--ey-yellow);
+  }
+  
+  .toggle-item input[type="checkbox"]::before{
+    content:'';
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    top:2px;
+    left:2px;
+    background:#fff;
+    transition:transform 0.3s;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .toggle-item input[type="checkbox"]:checked::before{
+    transform:translateX(24px);
+  }
+  
+  .toggle-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--ey-ink);
+  }
+  
+  /* Buttons */
+  .btn{
+    padding:14px 28px;
+    border:none;
+    border-radius:12px;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  
+  .btn-primary{
+    background:linear-gradient(135deg, var(--ey-yellow) 0%, var(--ey-yellow-dark) 100%);
+    color:var(--ey-black);
+    box-shadow:0 4px 12px rgba(255, 230, 0, 0.3);
+  }
+  
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(255, 230, 0, 0.4);
+  }
+  
+  .btn-secondary{
+    background:#fff;
+    color:var(--ey-black);
+    border:2px solid var(--ey-border);
+  }
+  
+  .btn-secondary:hover{
+    border-color:var(--ey-yellow);
+    background:var(--gradient-start);
+  }
+  
+  .btn-group{
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+  }
+  
+  /* Section Divider */
+  .section-divider{
+    height:1px;
+    background:linear-gradient(to right, transparent, var(--ey-border), transparent);
+    margin:32px 0;
+  }
+  
+  .section-title{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ey-black);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    margin:28px 0 20px 0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  
+  .section-title::after{
+    content:'';
+    flex:1;
+    height:2px;
+    background:linear-gradient(to right, var(--ey-yellow), transparent);
+  }
+  
+  /* Progress Bar */
+  .progress-bar{
+    height:12px;
+    background:#e5e7eb;
+    border-radius:6px;
+    overflow:hidden;
+    margin:12px 0;
+  }
+  
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--ey-yellow), var(--ey-yellow-dark));
+    border-radius:6px;
+    transition:width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Footer */
+  footer{
+    max-width:1400px;
+    margin:40px auto 20px;
+    padding:0 24px;
+    text-align:center;
+    color:var(--ey-muted);
+    font-size:12px;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar{
+    width:10px;
+  }
+  
+  ::-webkit-scrollbar-track{
+    background:#f1f1f1;
+  }
+  
+  ::-webkit-scrollbar-thumb{
+    background:var(--ey-yellow);
+    border-radius:5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover{
+    background:var(--ey-yellow-dark);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px){
+    .topbar{
+      flex-direction:column;
+      text-align:center;
+    }
+    .brand h1{
+      font-size:18px;
+    }
+    .tabs{
+      flex-direction:column;
+    }
+    .kpi-value{
+      font-size:28px;
+    }
+  }
+  
+  .input-mini{
+    width:100%;
+    padding:10px 14px;
+    background:#fff;
+    border:2px solid var(--ey-border);
+    border-radius:10px;
+    color:var(--ey-ink);
+    font-size:14px;
+    font-weight:600;
+    font-family:'SF Mono', Monaco, monospace;
+  }
+  
+  .input-mini:focus{
+    outline:none;
+    border-color:var(--ey-yellow);
+    box-shadow:0 0 0 3px rgba(255, 230, 0, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <svg width="48" height="32" viewBox="0 0 120 72" aria-label="EY logo" role="img">
+        <defs>
+          <linearGradient id="eyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFE600;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e6c600;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <polygon points="0,72 120,0 120,72" fill="url(#eyGrad)" stroke="#e6c600" stroke-width="2"/>
+        <text x="8" y="58" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="44" fill="#111111">EY</text>
+      </svg>
+      <h1>AgenticAI — Pricing & FinOps Calculator</h1>
+    </div>
+    <span class="tag">Internal Prototype</span>
+  </div>
+</header>
+
+<main>
+  <!-- Tabs Navigation -->
+  <nav class="tabs" role="tablist">
+    <button class="tabbtn active" data-tab="inputs">📊 Pricing Inputs</button>
+    <button class="tabbtn" data-tab="results">📈 Results & Analytics</button>
+    <button class="tabbtn" data-tab="finops">💰 FinOps Dashboard</button>
+  </nav>
+
+  <!-- TAB 1: PRICING INPUTS -->
+  <section id="tab-inputs" class="tabpanel active">
+    <div class="grid grid-2">
+      <!-- Left Column: Inputs -->
+      <div>
+        <div class="card">
+          <h2 class="card-title">Configuration Parameters</h2>
+          
+          <div class="input-group">
+            <label class="input-label">Agent Type</label>
+            <select id="agentType">
+              <option value="task">Task Agent</option>
+              <option value="analytical" selected>Analytical / Reasoning Agent</option>
+              <option value="orchestrator">Orchestrator / Multi-Agent</option>
+              <option value="autonomous">Autonomous Agent</option>
+            </select>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Base Development Cost (CAD)</span>
+              <span class="input-value" id="baseDevVal">$150,000</span>
+            </label>
+            <input type="range" id="baseDev" min="50000" max="500000" step="10000" value="150000">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Users</span>
+              <span class="input-value" id="usersVal">100</span>
+            </label>
+            <input type="range" id="users" min="10" max="1000" step="10" value="100">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Calls per Day</span>
+              <span class="input-value" id="callsPerDayVal">800</span>
+            </label>
+            <input type="range" id="callsPerDay" min="100" max="5000" step="100" value="800">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Prompt Tokens / Call</span>
+              <span class="input-value" id="inTokensVal">700</span>
+            </label>
+            <input type="range" id="inTokens" min="100" max="2000" step="50" value="700">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Completion Tokens / Call</span>
+              <span class="input-value" id="outTokensVal">500</span>
+            </label>
+            <input type="range" id="outTokens" min="100" max="2000" step="50" value="500">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>GPU Hours / Month</span>
+              <span class="input-value" id="gpuHoursVal">120</span>
+            </label>
+            <input type="range" id="gpuHours" min="0" max="500" step="10" value="120">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Vector DB Storage (GB/month)</span>
+              <span class="input-value" id="storageGBVal">200</span>
+            </label>
+            <input type="range" id="storageGB" min="0" max="1000" step="50" value="200">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Maintenance Rate (% of Dev/yr)</span>
+              <span class="input-value" id="maintPctVal">18%</span>
+            </label>
+            <input type="range" id="maintPct" min="10" max="30" step="1" value="18">
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <h3 class="section-title">Feature Add-ons</h3>
+          <div class="toggle-group">
+            <label class="toggle-item">
+              <input type="checkbox" id="featRAG" checked>
+              <span class="toggle-label">RAG / Vector DB (+$20k)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="featOrch">
+              <span class="toggle-label">Multi-agent Orchestration (+$25k)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="featAnalytics">
+              <span class="toggle-label">Analytics Layer (+$10k)</span>
+            </label>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>API Connectors</span>
+              <span class="input-value" id="connectorsVal">2</span>
+            </label>
+            <input type="range" id="connectors" min="0" max="10" step="1" value="2">
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <h3 class="section-title">ROI Parameters</h3>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Hours Saved per Task</span>
+              <span class="input-value" id="hoursSavedVal">0.25</span>
+            </label>
+            <input type="range" id="hoursSaved" min="0.1" max="2" step="0.05" value="0.25">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Tasks per User per Day</span>
+              <span class="input-value" id="tasksPerUserVal">3</span>
+            </label>
+            <input type="range" id="tasksPerUser" min="1" max="10" step="1" value="3">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Blended Rate ($/hr)</span>
+              <span class="input-value" id="ratePerHourVal">$85</span>
+            </label>
+            <input type="range" id="ratePerHour" min="50" max="200" step="5" value="85">
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">
+              <span>Adoption Rate (%)</span>
+              <span class="input-value" id="adoptionPctVal">70%</span>
+            </label>
+            <input type="range" id="adoptionPct" min="0" max="100" step="5" value="70">
+          </div>
+          
+          <div class="btn-group">
+            <button class="btn btn-primary" id="calcBtn">🔄 Recalculate</button>
+            <button class="btn btn-secondary" id="loadBtn">⚙️ Load Defaults</button>
+            <button class="btn btn-secondary" id="exportBtn">💾 Export JSON</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column: Live KPIs -->
+      <div>
+        <div class="card">
+          <h2 class="card-title">Key Performance Indicators</h2>
+          <div class="grid">
+            <div class="kpi" id="tcoKpi">
+              <div class="kpi-label">Total Cost of Ownership (Year 1)</div>
+              <div class="kpi-value" id="tcoYr1">$0</div>
+              <div class="kpi-sub">Development + Maintenance + Infrastructure + Human</div>
+            </div>
+            
+            <div class="kpi" id="roiKpi">
+              <div class="kpi-label">Return on Investment (Year 1)</div>
+              <div class="kpi-value" id="roiPct">0%</div>
+              <div class="kpi-sub" id="paybackText">Payback period calculation</div>
+            </div>
+            
+            <div class="kpi">
+              <div class="kpi-label">Cost per Engagement</div>
+              <div class="kpi-value" id="perEng">$0</div>
+              <div class="kpi-sub" id="engBreak">Based on shared engagements</div>
+            </div>
+            
+            <div class="kpi">
+              <div class="kpi-label">Cost per Interaction</div>
+              <div class="kpi-value" id="cpi">$0.00</div>
+              <div class="kpi-sub" id="cpiText">TCO divided by annual calls</div>
+            </div>
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <h3 class="section-title">Adoption Progress</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" id="adoptionProgress" style="width:70%"></div>
+          </div>
+          <div style="text-align:center;margin-top:8px;font-size:13px;color:var(--ey-muted)">
+            <span id="adoptionProgressText">70% User Adoption Rate</span>
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <div class="chart-container">
+            <canvas id="costBreakdownChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: RESULTS & ANALYTICS -->
+  <section id="tab-results" class="tabpanel">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2 class="card-title">Cost Breakdown Analysis</h2>
+        <div class="grid grid-2">
+          <div class="kpi">
+            <div class="kpi-label">Development Cost</div>
+            <div class="kpi-value" id="devCost">$0</div>
+            <div class="kpi-sub" id="devBreak">One-time investment</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Annual Maintenance</div>
+            <div class="kpi-value" id="maintCost">$0</div>
+            <div class="kpi-sub">Ongoing support & updates</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Infrastructure OPEX</div>
+            <div class="kpi-value" id="infraYear">$0</div>
+            <div class="kpi-sub" id="infraBreak">Annual cloud costs</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Human OPEX</div>
+            <div class="kpi-value" id="humanYear">$0</div>
+            <div class="kpi-sub">Team & operational costs</div>
+          </div>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="chart-container-lg">
+          <canvas id="costsOverTimeChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2 class="card-title">Infrastructure Cost Details</h2>
+        <div class="chart-container-lg">
+          <canvas id="infraPieChart"></canvas>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <h3 class="section-title">Monthly Infrastructure</h3>
+        <div class="grid grid-2">
+          <div class="kpi">
+            <div class="kpi-label">Token Costs</div>
+            <div class="kpi-value" id="tokenCostMo">$0</div>
+            <div class="kpi-sub">LLM API usage</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">GPU Compute</div>
+            <div class="kpi-value" id="gpuCostMo">$0</div>
+            <div class="kpi-sub">Processing power</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Storage</div>
+            <div class="kpi-value" id="storageCostMo">$0</div>
+            <div class="kpi-sub">Vector database</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">API Calls</div>
+            <div class="kpi-value" id="apiCostMo">$0</div>
+            <div class="kpi-sub">External integrations</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="grid" style="margin-top:24px">
+      <div class="card">
+        <h2 class="card-title">Value Generation & ROI Trajectory</h2>
+        <div class="chart-container-lg">
+          <canvas id="roiChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: FINOPS DASHBOARD -->
+  <section id="tab-finops" class="tabpanel">
+    <div class="grid grid-3">
+      <div class="card">
+        <h2 class="card-title">Planned vs Actual</h2>
+        <div class="input-group">
+          <label class="input-label">Actual Token Cost ($/month)</label>
+          <input type="number" class="input-mini" id="actualToken" value="0" min="0" step="100">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Actual GPU Cost ($/month)</label>
+          <input type="number" class="input-mini" id="actualGPU" value="0" min="0" step="100">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Actual API Cost ($/month)</label>
+          <input type="number" class="input-mini" id="actualAPI" value="0" min="0" step="100">
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2 class="card-title">Variance Analysis</h2>
+        <div class="kpi" id="varianceKpi">
+          <div class="kpi-label">Annual Variance</div>
+          <div class="kpi-value" id="variance">$0</div>
+          <div class="kpi-sub" id="varianceTxt">Planned vs Actual</div>
+        </div>
+        <div style="margin-top:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--ey-muted)">Budget Utilization</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="budgetProgress" style="width:0%"></div>
+          </div>
+          <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--ey-muted)" id="budgetText">
+            0% of planned budget
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2 class="card-title">Cost Efficiency</h2>
+        <div class="kpi">
+          <div class="kpi-label">Planned Monthly Infra</div>
+          <div class="kpi-value" id="plannedInfraMo">$0</div>
+          <div class="kpi-sub">Baseline forecast</div>
+        </div>
+        <div class="kpi" style="margin-top:16px">
+          <div class="kpi-label">Actual Monthly Infra</div>
+          <div class="kpi-value" id="actualInfraMo">$0</div>
+          <div class="kpi-sub">Current spending</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="grid grid-2" style="margin-top:24px">
+      <div class="card">
+        <h2 class="card-title">Cost Trends</h2>
+        <div class="chart-container-lg">
+          <canvas id="finopsLineChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2 class="card-title">Spending Distribution</h2>
+        <div class="chart-container-lg">
+          <canvas id="finopsBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2025 EY — Internal prototype. For demonstration purposes only. All values in CAD.
+</footer>
+
+<script>
+// ============================================================================
+// CONSTANTS & UTILITIES
+// ============================================================================
+const CADFMT = {style:'currency', currency:'CAD', maximumFractionDigits:0};
+const CADFMT2 = {style:'currency', currency:'CAD', maximumFractionDigits:2};
+
+function fmt(n){ return n.toLocaleString('en-CA', CADFMT); }
+function fmt2(n){ return n.toLocaleString('en-CA', CADFMT2); }
+function val(id){ return parseFloat(document.getElementById(id).value || 0); }
+function setVal(id, v){ document.getElementById(id).value = v; }
+function checked(id){ return document.getElementById(id).checked; }
+function setText(id, text){ 
+  const el = document.getElementById(id);
+  if(el) el.textContent = text;
+}
+
+// ============================================================================
+// TAB NAVIGATION
+// ============================================================================
+document.querySelectorAll('.tabbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tabbtn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+  });
+});
+
+// ============================================================================
+// PRESETS FOR AGENT TYPES
+// ============================================================================
+const PRESETS = {
+  task: {
+    baseDev: 80000, maintPct: 15, users: 50, callsPerDay: 500, 
+    inTokens: 400, outTokens: 250, gpuHours: 60, storageGB: 100,
+    featRAG: true, featOrch: false, featAnalytics: false, connectors: 1,
+    hoursSaved: 0.15, tasksPerUser: 2, ratePerHour: 85, adoptionPct: 60
+  },
+  analytical: {
+    baseDev: 150000, maintPct: 18, users: 100, callsPerDay: 800,
+    inTokens: 700, outTokens: 500, gpuHours: 120, storageGB: 200,
+    featRAG: true, featOrch: false, featAnalytics: true, connectors: 2,
+    hoursSaved: 0.25, tasksPerUser: 3, ratePerHour: 85, adoptionPct: 70
+  },
+  orchestrator: {
+    baseDev: 250000, maintPct: 20, users: 200, callsPerDay: 1500,
+    inTokens: 900, outTokens: 700, gpuHours: 250, storageGB: 400,
+    featRAG: true, featOrch: true, featAnalytics: true, connectors: 4,
+    hoursSaved: 0.35, tasksPerUser: 4, ratePerHour: 90, adoptionPct: 65
+  },
+  autonomous: {
+    baseDev: 400000, maintPct: 25, users: 400, callsPerDay: 2500,
+    inTokens: 1100, outTokens: 900, gpuHours: 400, storageGB: 800,
+    featRAG: true, featOrch: true, featAnalytics: true, connectors: 6,
+    hoursSaved: 0.5, tasksPerUser: 5, ratePerHour: 95, adoptionPct: 60
+  }
+};
+
+function loadDefaults(){
+  const key = document.getElementById('agentType').value;
+  const p = PRESETS[key];
+  if(!p) return;
+  
+  setVal('baseDev', p.baseDev);
+  setVal('maintPct', p.maintPct);
+  setVal('users', p.users);
+  setVal('callsPerDay', p.callsPerDay);
+  setVal('inTokens', p.inTokens);
+  setVal('outTokens', p.outTokens);
+  setVal('gpuHours', p.gpuHours);
+  setVal('storageGB', p.storageGB);
+  setVal('connectors', p.connectors);
+  setVal('hoursSaved', p.hoursSaved);
+  setVal('tasksPerUser', p.tasksPerUser);
+  setVal('ratePerHour', p.ratePerHour);
+  setVal('adoptionPct', p.adoptionPct);
+  
+  document.getElementById('featRAG').checked = p.featRAG;
+  document.getElementById('featOrch').checked = p.featOrch;
+  document.getElementById('featAnalytics').checked = p.featAnalytics;
+  
+  updateSliderDisplays();
+  calc();
+}
+
+// ============================================================================
+// SLIDER VALUE DISPLAY
+// ============================================================================
+function updateSliderDisplays(){
+  setText('baseDevVal', fmt(val('baseDev')));
+  setText('usersVal', Math.round(val('users')));
+  setText('callsPerDayVal', Math.round(val('callsPerDay')));
+  setText('inTokensVal', Math.round(val('inTokens')));
+  setText('outTokensVal', Math.round(val('outTokens')));
+  setText('gpuHoursVal', Math.round(val('gpuHours')));
+  setText('storageGBVal', Math.round(val('storageGB')));
+  setText('maintPctVal', Math.round(val('maintPct')) + '%');
+  setText('connectorsVal', Math.round(val('connectors')));
+  setText('hoursSavedVal', val('hoursSaved').toFixed(2));
+  setText('tasksPerUserVal', Math.round(val('tasksPerUser')));
+  setText('ratePerHourVal', '$' + Math.round(val('ratePerHour')));
+  setText('adoptionPctVal', Math.round(val('adoptionPct')) + '%');
+  
+  document.getElementById('adoptionProgress').style.width = val('adoptionPct') + '%';
+  setText('adoptionProgressText', Math.round(val('adoptionPct')) + '% User Adoption Rate');
+}
+
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  slider.addEventListener('input', () => {
+    updateSliderDisplays();
+    calc();
+  });
+});
+
+// ============================================================================
+// CHARTS
+// ============================================================================
+let costBreakdownChart, costsOverTimeChart, infraPieChart, roiChart;
+let finopsLineChart, finopsBarChart;
+
+function initCharts(){
+  // Cost Breakdown Pie Chart (Inputs tab)
+  const ctx1 = document.getElementById('costBreakdownChart').getContext('2d');
+  costBreakdownChart = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['Development', 'Maintenance', 'Infrastructure', 'Human OPEX'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: ['#FFE600', '#fbbf24', '#f59e0b', '#d97706'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 15, font: { size: 12, weight: '600' } } },
+        title: { display: true, text: 'Year 1 Cost Distribution', font: { size: 14, weight: '700' } }
+      }
+    }
+  });
+  
+  // Costs Over Time (Results tab)
+  const ctx2 = document.getElementById('costsOverTimeChart').getContext('2d');
+  costsOverTimeChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Year 1', 'Year 2', 'Year 3'],
+      datasets: [
+        { label: 'Development', data: [0, 0, 0], backgroundColor: '#FFE600' },
+        { label: 'Maintenance', data: [0, 0, 0], backgroundColor: '#fbbf24' },
+        { label: 'Infrastructure', data: [0, 0, 0], backgroundColor: '#f59e0b' },
+        { label: 'Human OPEX', data: [0, 0, 0], backgroundColor: '#d97706' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, ticks: { callback: val => '$' + (val/1000).toFixed(0) + 'k' } }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, font: { weight: '600' } } },
+        title: { display: true, text: '3-Year Total Cost Projection', font: { size: 16, weight: '700' } }
+      }
+    }
+  });
+  
+  // Infrastructure Pie Chart (Results tab)
+  const ctx3 = document.getElementById('infraPieChart').getContext('2d');
+  infraPieChart = new Chart(ctx3, {
+    type: 'pie',
+    data: {
+      labels: ['Token Costs', 'GPU Compute', 'Storage', 'API Calls'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: ['#FFE600', '#fbbf24', '#f59e0b', '#d97706'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 15, font: { weight: '600' } } },
+        title: { display: true, text: 'Infrastructure Cost Breakdown', font: { size: 14, weight: '700' } }
+      }
+    }
+  });
+  
+  // ROI Chart (Results tab)
+  const ctx4 = document.getElementById('roiChart').getContext('2d');
+  roiChart = new Chart(ctx4, {
+    type: 'line',
+    data: {
+      labels: ['Month 1', 'Month 6', 'Month 12', 'Month 18', 'Month 24', 'Month 36'],
+      datasets: [
+        {
+          label: 'Cumulative Cost',
+          data: [0, 0, 0, 0, 0, 0],
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220, 38, 38, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Cumulative Value',
+          data: [0, 0, 0, 0, 0, 0],
+          borderColor: '#15803d',
+          backgroundColor: 'rgba(21, 128, 61, 0.1)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 15, font: { weight: '600' } } },
+        title: { display: true, text: 'Cost vs Value Over Time', font: { size: 16, weight: '700' } }
+      },
+      scales: {
+        y: { ticks: { callback: val => '$' + (val/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
+  
+  // FinOps Line Chart
+  const ctx5 = document.getElementById('finopsLineChart').getContext('2d');
+  finopsLineChart = new Chart(ctx5, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Planned',
+          data: Array(12).fill(0),
+          borderColor: '#6b7280',
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.1
+        },
+        {
+          label: 'Actual',
+          data: Array(12).fill(0),
+          borderColor: '#FFE600',
+          backgroundColor: 'rgba(255, 230, 0, 0.1)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, font: { weight: '600' } } },
+        title: { display: true, text: 'Monthly Infrastructure Spending', font: { size: 14, weight: '700' } }
+      },
+      scales: {
+        y: { ticks: { callback: val => '$' + val.toFixed(0) } }
+      }
+    }
+  });
+  
+  // FinOps Bar Chart
+  const ctx6 = document.getElementById('finopsBarChart').getContext('2d');
+  finopsBarChart = new Chart(ctx6, {
+    type: 'bar',
+    data: {
+      labels: ['Tokens', 'GPU', 'Storage', 'API'],
+      datasets: [
+        { label: 'Planned', data: [0, 0, 0, 0], backgroundColor: '#d1d5db' },
+        { label: 'Actual', data: [0, 0, 0, 0], backgroundColor: '#FFE600' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, font: { weight: '600' } } },
+        title: { display: true, text: 'Planned vs Actual by Category', font: { size: 14, weight: '700' } }
+      },
+      scales: {
+        y: { ticks: { callback: val => '$' + (val/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
+}
+
+// ============================================================================
+// CALCULATION ENGINE
+// ============================================================================
+function calc(){
+  // Read inputs
+  const baseDev = val('baseDev');
+  const maintPct = val('maintPct');
+  const users = val('users');
+  const callsPerDay = val('callsPerDay');
+  const inTokens = val('inTokens');
+  const outTokens = val('outTokens');
+  const gpuHours = val('gpuHours');
+  const storageGB = val('storageGB');
+  const hoursSaved = val('hoursSaved');
+  const tasksPerUser = val('tasksPerUser');
+  const ratePerHour = val('ratePerHour');
+  const adoptionPct = val('adoptionPct');
+  
+  // Fixed rates (simplified for demo)
+  const inPrice = 0.0035;
+  const outPrice = 0.010;
+  const gpuRate = 3.0;
+  const storageRate = 0.12;
+  const apiRate = 0.0025;
+  const apiCalls = 20000;
+  const workdays = 230;
+  const wastePct = 10;
+  
+  // Feature add-ons
+  let addons = 0;
+  if(checked('featRAG')) addons += 20000;
+  if(checked('featOrch')) addons += 25000;
+  if(checked('featAnalytics')) addons += 10000;
+  addons += val('connectors') * 3000;
+  
+  // Development cost
+  const devCost = baseDev + addons;
+  const maintCost = devCost * (maintPct / 100);
+  
+  // Infrastructure costs
+  const monthCalls = callsPerDay * 30;
+  const tokenCostMo = (monthCalls * inTokens / 1000 * inPrice) + (monthCalls * outTokens / 1000 * outPrice);
+  const gpuCostMo = gpuHours * gpuRate;
+  const storageCostMo = storageGB * storageRate;
+  const apiCostMo = apiCalls * apiRate;
+  const infraMo = tokenCostMo + gpuCostMo + storageCostMo + apiCostMo;
+  const infraYr = infraMo * 12;
+  
+  // Human OPEX (simplified)
+  const humanYr = 100000; // Placeholder
+  
+  // Total Cost Year 1
+  const tcoYr1 = devCost + maintCost + infraYr + humanYr;
+  const perEng = tcoYr1;
+  
+  // ROI
+  const adopt = adoptionPct / 100;
+  const waste = wastePct / 100;
+  const effectiveUsers = users * adopt * (1 - waste);
+  const hoursValueYr = effectiveUsers * tasksPerUser * hoursSaved * workdays * ratePerHour;
+  const roiPct = (hoursValueYr - tcoYr1) / tcoYr1;
+  const paybackMonths = hoursValueYr > 0 ? (devCost / (hoursValueYr / 12)) : Infinity;
+  
+  // Cost per interaction
+  const callsYr = callsPerDay * 365;
+  const cpi = callsYr > 0 ? (tcoYr1 / callsYr) : 0;
+  
+  // Update KPIs
+  setText('tcoYr1', fmt(tcoYr1));
+  setText('roiPct', (roiPct * 100).toFixed(0) + '%');
+  setText('perEng', fmt(perEng));
+  setText('cpi', fmt2(cpi));
+  setText('cpiText', callsYr.toLocaleString('en-CA') + ' calls/year');
+  setText('paybackText', isFinite(paybackMonths) && paybackMonths > 0 ? 
+    `Payback ≈ ${paybackMonths.toFixed(1)} months` : 'Payback: > 24 months or negative');
+  
+  // Color code ROI KPI
+  const roiKpi = document.getElementById('roiKpi');
+  roiKpi.classList.remove('ok', 'warn', 'bad');
+  if(roiPct >= 1) roiKpi.classList.add('ok');
+  else if(roiPct >= 0) roiKpi.classList.add('warn');
+  else roiKpi.classList.add('bad');
+  
+  // Results tab
+  setText('devCost', fmt(devCost));
+  setText('devBreak', `Base: ${fmt(baseDev)} + Add-ons: ${fmt(addons)}`);
+  setText('maintCost', fmt(maintCost));
+  setText('infraYear', fmt(infraYr));
+  setText('infraBreak', `Monthly: ${fmt(infraMo)} × 12`);
+  setText('humanYear', fmt(humanYr));
+  
+  setText('tokenCostMo', fmt(tokenCostMo));
+  setText('gpuCostMo', fmt(gpuCostMo));
+  setText('storageCostMo', fmt(storageCostMo));
+  setText('apiCostMo', fmt(apiCostMo));
+  
+  // Update charts
+  updateCharts(devCost, maintCost, infraYr, humanYr, tokenCostMo, gpuCostMo, storageCostMo, apiCostMo, 
+               tcoYr1, hoursValueYr, infraMo);
+  
+  // FinOps
+  updateFinOps(infraMo, tokenCostMo, gpuCostMo, storageCostMo, apiCostMo);
+}
+
+function updateCharts(devCost, maintCost, infraYr, humanYr, tokenCostMo, gpuCostMo, storageCostMo, apiCostMo,
+                      tcoYr1, hoursValueYr, infraMo){
+  // Cost Breakdown Pie
+  costBreakdownChart.data.datasets[0].data = [devCost, maintCost, infraYr, humanYr];
+  costBreakdownChart.update();
+  
+  // Costs Over Time (3 years)
+  const yr2 = maintCost + infraYr + humanYr;
+  const yr3 = maintCost + infraYr + humanYr;
+  costsOverTimeChart.data.datasets[0].data = [devCost, 0, 0];
+  costsOverTimeChart.data.datasets[1].data = [maintCost, maintCost, maintCost];
+  costsOverTimeChart.data.datasets[2].data = [infraYr, infraYr, infraYr];
+  costsOverTimeChart.data.datasets[3].data = [humanYr, humanYr, humanYr];
+  costsOverTimeChart.update();
+  
+  // Infrastructure Pie
+  infraPieChart.data.datasets[0].data = [tokenCostMo * 12, gpuCostMo * 12, storageCostMo * 12, apiCostMo * 12];
+  infraPieChart.update();
+  
+  // ROI Chart (cumulative)
+  const monthlyOpex = (maintCost + infraYr + humanYr) / 12;
+  const monthlyValue = hoursValueYr / 12;
+  roiChart.data.datasets[0].data = [
+    devCost + monthlyOpex,
+    devCost + monthlyOpex * 6,
+    devCost + monthlyOpex * 12,
+    devCost + monthlyOpex * 18,
+    devCost + monthlyOpex * 24,
+    devCost + monthlyOpex * 36
+  ];
+  roiChart.data.datasets[1].data = [
+    monthlyValue,
+    monthlyValue * 6,
+    monthlyValue * 12,
+    monthlyValue * 18,
+    monthlyValue * 24,
+    monthlyValue * 36
+  ];
+  roiChart.update();
+  
+  // FinOps Line Chart (planned)
+  const plannedMonthly = Array(12).fill(infraMo);
+  finopsLineChart.data.datasets[0].data = plannedMonthly;
+  finopsLineChart.update();
+}
+
+function updateFinOps(infraMo, tokenCostMo, gpuCostMo, storageCostMo, apiCostMo){
+  const actualToken = val('actualToken');
+  const actualGPU = val('actualGPU');
+  const actualAPI = val('actualAPI');
+  const actualMo = actualToken + actualGPU + actualAPI;
+  const actualYr = actualMo * 12;
+  const plannedYr = infraMo * 12;
+  const variance = actualYr - plannedYr;
+  
+  setText('variance', fmt(variance));
+  setText('varianceTxt', variance > 0 ? 'Over budget' : variance < 0 ? 'Under budget' : 'On budget');
+  setText('plannedInfraMo', fmt(infraMo));
+  setText('actualInfraMo', fmt(actualMo));
+  
+  const varianceKpi = document.getElementById('varianceKpi');
+  varianceKpi.classList.remove('ok', 'warn', 'bad');
+  if(Math.abs(variance) < plannedYr * 0.1) varianceKpi.classList.add('ok');
+  else if(variance > 0) varianceKpi.classList.add('bad');
+  else varianceKpi.classList.add('warn');
+  
+  const budgetPct = plannedYr > 0 ? (actualYr / plannedYr * 100) : 0;
+  document.getElementById('budgetProgress').style.width = Math.min(budgetPct, 100) + '%';
+  setText('budgetText', budgetPct.toFixed(0) + '% of planned budget');
+  
+  // Update FinOps charts
+  const actualMonthly = Array(12).fill(actualMo);
+  finopsLineChart.data.datasets[1].data = actualMonthly;
+  finopsLineChart.update();
+  
+  finopsBarChart.data.datasets[0].data = [tokenCostMo * 12, gpuCostMo * 12, storageCostMo * 12, apiCostMo * 12];
+  finopsBarChart.data.datasets[1].data = [actualToken * 12, actualGPU * 12, actualAPI * 12, 0];
+  finopsBarChart.update();
+}
+
+function exportJSON(){
+  const data = {
+    agentType: document.getElementById('agentType').value,
+    baseDev: val('baseDev'),
+    maintPct: val('maintPct'),
+    users: val('users'),
+    callsPerDay: val('callsPerDay'),
+    inTokens: val('inTokens'),
+    outTokens: val('outTokens'),
+    gpuHours: val('gpuHours'),
+    storageGB: val('storageGB'),
+    connectors: val('connectors'),
+    hoursSaved: val('hoursSaved'),
+    tasksPerUser: val('tasksPerUser'),
+    ratePerHour: val('ratePerHour'),
+    adoptionPct: val('adoptionPct'),
+    featRAG: checked('featRAG'),
+    featOrch: checked('featOrch'),
+    featAnalytics: checked('featAnalytics'),
+    actualToken: val('actualToken'),
+    actualGPU: val('actualGPU'),
+    actualAPI: val('actualAPI')
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'agenticai_finops_config.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================================
+// EVENT LISTENERS
+// ============================================================================
+document.getElementById('calcBtn').addEventListener('click', calc);
+document.getElementById('loadBtn').addEventListener('click', loadDefaults);
+document.getElementById('exportBtn').addEventListener('click', exportJSON);
+document.getElementById('agentType').addEventListener('change', loadDefaults);
+
+document.querySelectorAll('#actualToken, #actualGPU, #actualAPI').forEach(input => {
+  input.addEventListener('input', calc);
+});
+
+document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', calc);
+});
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+window.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  loadDefaults();
+});
+</script>
+
+</body>
+</html>
+
